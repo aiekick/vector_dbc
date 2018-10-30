@@ -1,0 +1,11 @@
+FROM debian:testing
+
+# dependencies, build tools, static test, dynamic test, documentation
+RUN apt-get update \
+  && apt-get install --yes \
+    cmake gcc g++ \
+    cccc cppcheck \
+    lcov \
+    doxygen graphviz libboost-system-dev libboost-filesystem-dev libboost-test-dev \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
