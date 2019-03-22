@@ -139,36 +139,78 @@ uint64_t Signal::decode(std::vector<uint8_t> & data)
     /* copy bits */
     uint64_t retVal = 0;
     if (byteOrder == ByteOrder::BigEndian) {
-        /* start with MSB */
-        unsigned int srcBit = startBit;
-        unsigned int dstBit = bitSize - 1;
-        for (unsigned int i = 0; i < bitSize; ++i) {
-            /* copy bit */
-            if (data[srcBit / 8] & (1 << (srcBit % 8))) {
-                retVal |= (1ULL << dstBit);
-            }
+        /* preparation */
+        const unsigned int bitMask[9] = { 0x00, 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff };
+        unsigned int lowerBitSize = startBit % 8;
+        unsigned int upperBitSize = 8 - lowerBitSize;
 
-            /* calculate next position */
-            if ((srcBit % 8) == 0) {
-                srcBit += 15;
-            } else {
-                --srcBit;
-            }
-            --dstBit;
-        }
-    } else {
-        /* start with LSB */
+        /* init counters */
         unsigned int srcBit = startBit;
         unsigned int dstBit = 0;
-        for (unsigned int i = 0; i < bitSize; ++i) {
-            /* copy bit */
-            if (data[srcBit / 8] & (1 << (srcBit % 8))) {
-                retVal |= (1ULL << dstBit);
+        unsigned int remainingBits = bitSize;
+
+        /* start with LSB */
+        while (remainingBits > 0) {
+            /* copy upper part */
+            if ((upperBitSize > 0) && (remainingBits > 0)) {
+                if (remainingBits < upperBitSize) {
+                    upperBitSize = remainingBits;
+                }
+                uint64_t part = (data[srcBit / 8] >> lowerBitSize) & bitMask[upperBitSize];
+                retVal |= part << dstBit;
+                srcBit -= 8 + lowerBitSize;
+                dstBit += upperBitSize;
+                remainingBits -= upperBitSize;
             }
 
-            /* calculate next position */
-            ++srcBit;
-            ++dstBit;
+            /* copy lower part */
+            if ((lowerBitSize >> 0) && (remainingBits > 0)) {
+                if (remainingBits < lowerBitSize) {
+                    lowerBitSize = remainingBits;
+                }
+                uint64_t part = (data[srcBit / 8]) & bitMask[lowerBitSize];
+                retVal |= part << dstBit;
+                srcBit += upperBitSize;
+                dstBit += lowerBitSize;
+                remainingBits -= lowerBitSize;
+            }
+        }
+    } else {
+        /* preparation */
+        const unsigned int bitMask[9] = { 0x00, 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff };
+        unsigned int lowerBitSize = startBit % 8;
+        unsigned int upperBitSize = 8 - lowerBitSize;
+
+        /* init counters */
+        unsigned int srcBit = startBit;
+        unsigned int dstBit = 0;
+        unsigned int remainingBits = bitSize;
+
+        /* start with LSB */
+        while (remainingBits > 0) {
+            /* copy upper part */
+            if ((upperBitSize > 0) && (remainingBits > 0)) {
+                if (remainingBits < upperBitSize) {
+                    upperBitSize = remainingBits;
+                }
+                uint64_t part = (data[srcBit / 8] >> lowerBitSize) & bitMask[upperBitSize];
+                retVal |= part << dstBit;
+                srcBit += upperBitSize;
+                dstBit += upperBitSize;
+                remainingBits -= upperBitSize;
+            }
+
+            /* copy lower part */
+            if ((lowerBitSize >> 0) && (remainingBits > 0)) {
+                if (remainingBits < lowerBitSize) {
+                    lowerBitSize = remainingBits;
+                }
+                uint64_t part = (data[srcBit / 8]) & bitMask[lowerBitSize];
+                retVal |= part << dstBit;
+                srcBit += lowerBitSize;
+                dstBit += lowerBitSize;
+                remainingBits -= lowerBitSize;
+            }
         }
     }
 
