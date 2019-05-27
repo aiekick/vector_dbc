@@ -94,8 +94,8 @@ static double stod(const std::string & str)
 %type <std::string> value_table_name
 
     /* 7.1 Value Descriptions (Value Encodings) */
-%type <std::map<uint32_t, std::string>> value_encoding_descriptions
-%type <std::pair<uint32_t, std::string>> value_encoding_description
+%type <std::map<int32_t, std::string>> value_encoding_descriptions
+%type <std::pair<int32_t, std::string>> value_encoding_description
 
     /* 8 Message Definitions */
 %token BO VECTOR_XXX
@@ -316,11 +316,11 @@ value_table_name
 
     /* 7.1 Value Descriptions (Value Encodings) */
 value_encoding_descriptions
-        : %empty { $$ = std::map<uint32_t, std::string>(); }
+        : %empty { $$ = std::map<int32_t, std::string>(); }
         | value_encoding_descriptions value_encoding_description { $$ = $1; $$.insert($2); }
         ;
 value_encoding_description
-        : unsigned_integer char_string { $$ = std::make_pair($1, $2); }
+        : signed_integer char_string { $$ = std::make_pair($1, $2); }
         ;
 
     /* 8 Message Definitions */

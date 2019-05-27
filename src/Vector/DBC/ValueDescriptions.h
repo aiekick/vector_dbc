@@ -35,7 +35,7 @@ namespace DBC {
 /**
  * Value Descriptions
  */
-using ValueDescriptions = std::map<uint32_t, std::string>;
+using ValueDescriptions = std::map<int32_t, std::string>;
 
 }
 }
